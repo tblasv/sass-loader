@@ -23,12 +23,17 @@ var resolveError = /Cannot resolve/;
  * @returns {*}
  */
 module.exports = function (content) {
-    var callback = this.async();
-    var isSync = typeof callback !== 'function';
+    var opt = utils.parseQuery(this.query);
+    var callback;
+    var isSync = false;
     var self = this;
     var resourcePath = this.resourcePath;
     var fileExt;
-    var opt;
+
+    if (!opt.sync) {
+        callback = this.async();
+        isSync = typeof callback !== 'function';
+    }
 
     /**
      * Enhances the sass error with additional information about what actually went wrong.
@@ -100,7 +105,6 @@ module.exports = function (content) {
 
     this.cacheable();
 
-    opt = utils.parseQuery(this.query);
     opt.data = content;
 
     // Skip empty files, otherwise it will stop webpack, see issue #21
@@ -196,9 +200,13 @@ function getFileExcerptIfPossible(err) {
  * @returns {object}
  */
 function syncResolve(loaderContext, url, context) {
-    var filename;
+    var filename = path.join(context, url);
     var basename;
 
+    // resolveSync can only be used with a sync filesystem. This never occurs with webpack.
+    // It only occurs with enhanced-require when you use a sync require.
+    // https://github.com/webpack/less-loader/issues/43#issuecomment-96580193
+    /*
     try {
         filename = loaderContext.resolveSync(context, url);
         loaderContext.dependency && loaderContext.dependency(filename);
@@ -212,6 +220,7 @@ function syncResolve(loaderContext, url, context) {
         // @see https://github.com/sass/node-sass/issues/651#issuecomment-73317319
         filename = url;
     }
+    */
     return {
         file: filename
     };
