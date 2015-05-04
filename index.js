@@ -25,7 +25,7 @@ var resolveError = /Cannot resolve/;
 module.exports = function (content) {
     var opt = utils.parseQuery(this.query);
     var callback;
-    var isSync = false;
+    var isSync = true;
     var self = this;
     var resourcePath = this.resourcePath;
     var fileExt;
